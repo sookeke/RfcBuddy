@@ -2,6 +2,7 @@
 using RfcBuddy.App.Objects;
 using System.Data;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace RfcBuddy.App.Core;
 
@@ -51,13 +52,13 @@ public static class ExcelHelper
                 {
                     totalRfcs++;
                     //Ignore RFCs that contain keywords that should be filtered out.
-                    if (!RfcHelper.RfcKeywordMatches(ref currentRfc, ignoreKeywords))
+                    if (!RfcKeywordMatches(ref currentRfc, ignoreKeywords))
                     {
-                        if (RfcHelper.RfcKeywordMatches(ref currentRfc, ministryKeywords))
+                        if (RfcKeywordMatches(ref currentRfc, ministryKeywords))
                         {
                             ministryRfcs.Add(currentRfc);
                         }
-                        else if (RfcHelper.RfcKeywordMatches(ref currentRfc, generalKeywords))
+                        else if (RfcKeywordMatches(ref currentRfc, generalKeywords))
                         {
                             generalRfcs.Add(currentRfc);
                         }
@@ -101,5 +102,29 @@ public static class ExcelHelper
             }
         }
         return result;
+    }
+
+    /// <summary>
+    /// Checks whether a list of keywords matches the given RFC.
+    /// Matching is case-insensitive, and only matches whole words.
+    /// </summary>
+    /// <param name="rfc">The RFC to check</param>
+    /// <param name="keywords">The list of keywords</param>
+    /// <returns></returns>
+    internal static bool RfcKeywordMatches(ref Rfc rfc, List<string> keywords)
+    {
+        bool match = false;
+        foreach (string keyword in keywords)
+        {
+            string pattern = @"\b" + keyword + @"\b";
+            if (Regex.IsMatch(rfc.AssetTags, pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(1000))
+                || Regex.IsMatch(rfc.Description, pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(1000))
+                || Regex.IsMatch(rfc.RiskAssessment, pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(1000)))
+            {
+                match = true;
+                rfc.Keywords.Add(keyword);
+            }
+        }
+        return match;
     }
 }

@@ -1,6 +1,8 @@
-﻿using RfcBuddy.App.Objects;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using RfcBuddy.App.Objects;
 
-namespace RfcBuddy.Web.Services;
+namespace RfcBuddy.App.Services;
 
 public interface IAppSettingsService
 {
@@ -34,7 +36,7 @@ public class AppSettingsService : IAppSettingsService
         else
         {
             _appSettings.SourceUrl = config[sectionSourceInfo + ":" + keySourceUrl365]!;
-            _appSettings.SourceUser = config[sectionSourceInfo+":" + keySourceUrlUser]??string.Empty;
+            _appSettings.SourceUser = config[sectionSourceInfo + ":" + keySourceUrlUser] ?? string.Empty;
             _appSettings.SourcePassword = config[sectionSourceInfo + ":" + keySourceUrlPassword] ?? string.Empty;
         }
         if (int.TryParse(config[sectionSourceInfo + ":" + keySourceRefreshMinutes], out var refreshMinutes))

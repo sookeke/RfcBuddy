@@ -9,7 +9,7 @@ public class HomeViewModel
     public string MinistryKeywords { get; set; } = string.Empty;
 
     [Required(ErrorMessage = @"Please enter the generic keywords, or ""N/A"" to confirm that this field should be ignored.")]
-    [Display(Name = "Generic keywords that affetc all ministries, e.g. Siteminder")]
+    [Display(Name = "Generic keywords that affect all ministries, e.g. Siteminder")]
     public string GeneralKeywords { get; set; } = string.Empty;
 
     [Required(ErrorMessage = @"Please enter the keywords to filter out, or ""N/A"" to confirm that this field should be ignored.")]

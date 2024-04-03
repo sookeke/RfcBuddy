@@ -2,27 +2,33 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RfcBuddy.App.Core;
 using RfcBuddy.App.Objects;
+using RfcBuddy.App.Services;
 using RfcBuddy.Web.Models;
-using RfcBuddy.Web.Services;
 using System.Diagnostics;
 
 namespace RfcBuddy.Web.Controllers;
 
 [Authorize]
-public class HomeController(ILogger<HomeController> logger, IAppSettingsService appSettingsService) : Controller
+public class HomeController(ILogger<HomeController> logger, IAppSettingsService appSettingsService, IUserService userService) : Controller
 {
     private readonly ILogger<HomeController> _logger = logger;
     private readonly AppSettings _appSettings = appSettingsService.AppSettings;
+    private readonly IUserService _userService = userService;
 
     //Internal variables
     private const string excelFileName = "ServiceNow-365-Day-Changes.xlsx";
-    private const string previousFileName = "PreviousRFCs.txt";
     private readonly string wordFileName = "RFC-" + DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ".docx";
 
     [HttpGet]
     public IActionResult Index()
     {
-        HomeViewModel model = new();
+        _userService.GetUserKeywords(out List<string> ministryKeywords, out List<string> generalKeywords, out List<string> ignoreKeywords);
+        HomeViewModel model = new()
+        {
+            MinistryKeywords = string.Join(',', ministryKeywords),
+            GeneralKeywords = string.Join(',', generalKeywords),
+            IgnoreKeywords = string.Join(',', ignoreKeywords),
+        };
         return View(model);
     }
 
@@ -38,6 +44,7 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
                 List<string> ministryKeywords = [.. model.MinistryKeywords.Split(',')];
                 List<string> generalKeywords = [.. model.GeneralKeywords.Split(',')];
                 List<string> ignoreKeywords = [.. model.IgnoreKeywords.Split(',')];
+                _userService.SaveUserKeywords(ministryKeywords, generalKeywords, ignoreKeywords);
                 if (!Directory.Exists(_appSettings.DataFolder))
                 {
                     Directory.CreateDirectory(_appSettings.DataFolder);
@@ -48,11 +55,11 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
                 _logger.LogInformation("Ministry RFCs found: {ministryRfcsCount}", ministryRfcs.Count);
                 _logger.LogInformation("General RFCs found: {generalRfcsCount}", generalRfcs.Count);
                 _logger.LogInformation("Other RFCs found: {otherRfcsCount}", otherRfcs.Count);
-                List<PreviousRfc> previousRfcs = RfcHelper.GetPreviousRfcs(_appSettings.DataFolder + "/" + previousFileName);
+                List<PreviousRfc> previousRfcs = _userService.GetPreviousRfcs();
                 WordHelper wordHelper = new();
                 Stream wordFileStream = new MemoryStream();
                 wordHelper.CreateWordFile(ref wordFileStream, ministryRfcs, generalRfcs, otherRfcs, previousRfcs);
-                RfcHelper.SavePreviousRfcs(_appSettings.DataFolder + "/" + previousFileName, ministryRfcs.Union(generalRfcs).Union(otherRfcs));
+                _userService.SavePreviousRfcs(ministryRfcs.Union(generalRfcs).Union(otherRfcs));
                 wordFileStream.Position = 0;  //reset filestream for download
                 var cd = new System.Net.Mime.ContentDisposition
                 {

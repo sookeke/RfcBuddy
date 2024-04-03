@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using RfcBuddy.Web.Services;
+using RfcBuddy.App.Services;
 
 namespace RfcBuddy.Web.Controllers.Tests;
 
@@ -25,6 +25,16 @@ public class TestBase
     protected static IAppSettingsService MockAppSettingsService()
     {
         var mockService=new Mock<IAppSettingsService>();
+        return mockService.Object;
+    }
+
+    protected static IUserService MockUserService()
+    {
+        var mockService= new Mock<IUserService>();
+        List<string> list1 = [];
+        List<string> list2 = [];
+        List<string> list3 = [];
+        mockService.Setup(x => x.GetUserKeywords(out list1, out list2, out list3));
         return mockService.Object;
     }
     #endregion
