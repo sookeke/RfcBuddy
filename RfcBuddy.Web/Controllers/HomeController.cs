@@ -9,16 +9,37 @@ using System.Diagnostics;
 namespace RfcBuddy.Web.Controllers;
 
 [Authorize]
+/// <summary>
+/// This is a single-page app right now, so everything happens here.
+/// </summary>
+/// <param name="logger">The logger service</param>
+/// <param name="appSettingsService">The service to get the AppSettings object from</param>
+/// <param name="userService">The user service</param>
 public class HomeController(ILogger<HomeController> logger, IAppSettingsService appSettingsService, IUserService userService) : Controller
 {
+    /// <summary>
+    /// Use to log any events
+    /// </summary>
     private readonly ILogger<HomeController> _logger = logger;
+
+    /// <summary>
+    /// Strongly typed and easily accessible application settings
+    /// </summary>
     private readonly AppSettings _appSettings = appSettingsService.AppSettings;
+
+    /// <summary>
+    /// Service to store and retrieve user-specific data
+    /// </summary>
     private readonly IUserService _userService = userService;
 
     //Internal variables
     private const string excelFileName = "ServiceNow-365-Day-Changes.xlsx";
     private readonly string wordFileName = "RFC-" + DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ".docx";
 
+    /// <summary>
+    /// Gets the homepage
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     public IActionResult Index()
     {
@@ -32,6 +53,11 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
         return View(model);
     }
 
+    /// <summary>
+    /// Processes the keywords and returns a Word document with the user's relevant changes
+    /// </summary>
+    /// <param name="model"></param>
+    /// <returns></returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Index(HomeViewModel model)
@@ -79,6 +105,10 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
         return View(model);
     }
 
+    /// <summary>
+    /// In case there's an unhandled server error
+    /// </summary>
+    /// <returns></returns>
     [HttpGet]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

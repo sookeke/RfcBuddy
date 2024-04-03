@@ -1,5 +1,8 @@
 ﻿namespace RfcBuddy.App.Objects;
 
+/// <summary>
+/// Holds global application settings
+/// </summary>
 public class AppSettings
 {
     /// <summary>
