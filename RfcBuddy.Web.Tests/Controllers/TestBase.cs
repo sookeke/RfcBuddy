@@ -22,12 +22,6 @@ public class TestBase
         return factory!.CreateLogger<T>();
     }
 
-    protected static IAppSettingsService MockAppSettingsService()
-    {
-        var mockService=new Mock<IAppSettingsService>();
-        return mockService.Object;
-    }
-
     protected static IUserService MockUserService()
     {
         var mockService= new Mock<IUserService>();

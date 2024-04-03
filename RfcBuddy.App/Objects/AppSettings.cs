@@ -28,10 +28,5 @@ public class AppSettings
     /// <summary>
     /// The source URL refresh interval in minutes. Defaults to 60.
     /// </summary>
-    public int SourceRefreshMinutes {  get; set; } = 60;
-
-    /// <summary>
-    /// The name of the Excel file to store the downloaded 365-day changes in.
-    /// </summary>
-    public string ExcelFileName { get; set; } = string.Empty;
+    public int SourceRefreshInterval {  get; set; } = 60;
 }

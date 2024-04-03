@@ -14,11 +14,10 @@ public class HomeControllerTests : TestBase
     public HomeControllerTests() : base()
     {
         var logger = InitializeLogger<HomeController>();
-        var appSettingsService = MockAppSettingsService();
         var userService = MockUserService();
         var excelService = MockExcelService();
         var wordService = MockWordService();
-        _controller = new(logger, appSettingsService, userService, excelService, wordService)
+        _controller = new(logger, userService, excelService, wordService)
         {
             ControllerContext = new ControllerContext()
             {

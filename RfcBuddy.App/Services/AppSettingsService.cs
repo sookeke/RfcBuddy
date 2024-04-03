@@ -73,7 +73,6 @@ public class AppSettingsService : IAppSettingsService
         _appSettings = new()
         {
             DataFolder = config[keyDataFolder] ?? "./data",
-            ExcelFileName = "ServiceNow-365-Day-Changes.xlsx",
         };
         if (string.IsNullOrWhiteSpace(config[sectionSourceInfo + ":" + keySourceUrl365]))
         {
@@ -87,7 +86,7 @@ public class AppSettingsService : IAppSettingsService
         }
         if (int.TryParse(config[sectionSourceInfo + ":" + keySourceRefreshMinutes], out var refreshMinutes))
         {
-            _appSettings.SourceRefreshMinutes = refreshMinutes;
+            _appSettings.SourceRefreshInterval = refreshMinutes;
         }
         else
         {

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using RfcBuddy.App.Core;
 using RfcBuddy.App.Objects;
 using RfcBuddy.App.Services;
 using RfcBuddy.Web.Models;
@@ -15,17 +14,12 @@ namespace RfcBuddy.Web.Controllers;
 /// <param name="appSettingsService">The service to get the AppSettings object from</param>
 /// <param name="userService">The user service</param>
 [Authorize]
-public class HomeController(ILogger<HomeController> logger, IAppSettingsService appSettingsService, IUserService userService, IRfcService excelService, IWordService wordService) : Controller
+public class HomeController(ILogger<HomeController> logger, IUserService userService, IRfcService excelService, IWordService wordService) : Controller
 {
     /// <summary>
     /// Use to log any events
     /// </summary>
     private readonly ILogger<HomeController> _logger = logger;
-
-    /// <summary>
-    /// Strongly typed and easily accessible application settings
-    /// </summary>
-    private readonly AppSettings _appSettings = appSettingsService.AppSettings;
 
     /// <summary>
     /// Service to store and retrieve user-specific data
@@ -77,11 +71,7 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
                 List<string> generalKeywords = [.. model.GeneralKeywords.Split(',')];
                 List<string> ignoreKeywords = [.. model.IgnoreKeywords.Split(',')];
                 _userService.SaveUserKeywords(ministryKeywords, generalKeywords, ignoreKeywords);
-                if (!Directory.Exists(_appSettings.DataFolder))
-                {
-                    Directory.CreateDirectory(_appSettings.DataFolder);
-                }
-                await WebHelper.GetLatestChanges(_appSettings.DataFolder + "/" + _appSettings.ExcelFileName, _appSettings.SourceUrl, _appSettings.SourceUser, _appSettings.SourcePassword, _appSettings.SourceRefreshMinutes).ConfigureAwait(true);
+                await _excelService.GetLatestChanges().ConfigureAwait(true);
                 int totalRfcs = _excelService.ProcessRfcs(ministryKeywords, generalKeywords, ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs);
                 _logger.LogInformation("Total RFCs processed: {totalRfcs}", totalRfcs);
                 _logger.LogInformation("Ministry RFCs found: {ministryRfcsCount}", ministryRfcs.Count);

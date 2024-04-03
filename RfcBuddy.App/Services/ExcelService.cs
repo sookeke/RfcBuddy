@@ -1,6 +1,7 @@
 ﻿using ExcelDataReader;
 using RfcBuddy.App.Objects;
 using System.Data;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -22,6 +23,11 @@ public interface IRfcService
     /// <param name="otherRfcs">RFCs that are neither ministry-specific nor general, but were not in the Ignore list.</param>
     /// <returns>The total number of RFCs that were processed</returns>
     public int ProcessRfcs(List<string> ministryKeywords, List<string> generalKeywords, List<string> ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs);
+
+    /// <summary>
+    /// Gets the latest changes if it's been longer than the refresh interval in the app settings.
+    /// </summary>
+    public Task GetLatestChanges();
 }
 
 /// <summary>
@@ -44,6 +50,33 @@ public class ExcelService(IAppSettingsService appSettingsService) : IRfcService
     private const int colDescription = 6;
     private const int colRisk = 7;
 
+    private const string excelFileName = "ServiceNow-365-Day-Changes.xlsx";
+
+    /// <summary>
+    /// Gets the latest changes if it's been longer than the refresh interval in the app settings.
+    /// </summary>
+    public async Task GetLatestChanges()
+    {
+        string excelFile = _appSettings.DataFolder + "/" + excelFileName;
+        if (!File.Exists(excelFile) || File.GetLastWriteTimeUtc(excelFile) < DateTime.UtcNow.AddMinutes(0 - _appSettings.SourceRefreshInterval))
+        {
+            if (!Directory.Exists(_appSettings.DataFolder))
+            {
+                Directory.CreateDirectory(_appSettings.DataFolder);
+            }
+            using HttpClientHandler handler = new();
+            if (!string.IsNullOrEmpty(_appSettings.SourceUser) && !string.IsNullOrEmpty(_appSettings.SourcePassword))
+            {
+                handler.Credentials = new NetworkCredential(_appSettings.SourceUser, _appSettings.SourcePassword);
+            }
+            using HttpClient client = new(handler);
+            using var responseStream = await client.GetStreamAsync(_appSettings.SourceUrl).ConfigureAwait(true);
+            using var fileStream = new FileStream(excelFile, FileMode.Create);
+            await responseStream.CopyToAsync(fileStream).ConfigureAwait(true);
+            responseStream.Close();
+        }
+    }
+
     /// <summary>
     /// Processes the given keywords and returns relevant RFCs from the Excel sheet
     /// </summary>
@@ -60,7 +93,7 @@ public class ExcelService(IAppSettingsService appSettingsService) : IRfcService
         generalRfcs = [];
         otherRfcs = [];
         int totalRfcs = 0;
-        string excelFile = _appSettings.DataFolder + "/" + _appSettings.ExcelFileName;
+        string excelFile = _appSettings.DataFolder + "/" + excelFileName;
         if (File.Exists(excelFile))
         {
             //Required for the ExcelDataReader to understand the encoding of the 365-day change Excel file.
