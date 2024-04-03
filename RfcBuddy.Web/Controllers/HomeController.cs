@@ -72,6 +72,7 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
             catch (Exception ex)
             {
                 _logger.LogCritical("Exception: {stackTrace}", ex);
+                ModelState.AddModelError("Exception", "Error while processing the keywords: " + ex.Message);
             }
             _logger.LogInformation("Processing complete: {currentDateTime}", DateTime.Now.ToString());
         }

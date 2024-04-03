@@ -14,6 +14,12 @@
             Keywords are comma-separated in the fields below.<br />
             Keyword matching is case-insensitive and will only match full words, e.g. "Pike" will not match "Spikes".
         </p>
+        @if (ViewContext.ModelState.ContainsKey("Exception"))
+        {
+            <p class="alert alert-danger">
+                @ViewContext.ModelState["Exception"]?.Errors[0].ErrorMessage
+            </p>
+        }
         <div class="form-group">
             <label asp-for="MinistryKeywords"></label><br />
             <textarea asp-for="MinistryKeywords" class="form-control"></textarea>
