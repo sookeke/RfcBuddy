@@ -8,14 +8,14 @@ using System.Diagnostics;
 
 namespace RfcBuddy.Web.Controllers;
 
-[Authorize]
 /// <summary>
 /// This is a single-page app right now, so everything happens here.
 /// </summary>
 /// <param name="logger">The logger service</param>
 /// <param name="appSettingsService">The service to get the AppSettings object from</param>
 /// <param name="userService">The user service</param>
-public class HomeController(ILogger<HomeController> logger, IAppSettingsService appSettingsService, IUserService userService) : Controller
+[Authorize]
+public class HomeController(ILogger<HomeController> logger, IAppSettingsService appSettingsService, IUserService userService, IExcelService excelService) : Controller
 {
     /// <summary>
     /// Use to log any events
@@ -32,9 +32,10 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
     /// </summary>
     private readonly IUserService _userService = userService;
 
-    //Internal variables
-    private const string excelFileName = "ServiceNow-365-Day-Changes.xlsx";
-    private readonly string wordFileName = "RFC-" + DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ".docx";
+    /// <summary>
+    /// Service to process the RFCs in the Excel sheet
+    /// </summary>
+    private readonly IExcelService _excelService=excelService;
 
     /// <summary>
     /// Gets the homepage
@@ -76,7 +77,7 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
                     Directory.CreateDirectory(_appSettings.DataFolder);
                 }
                 await WebHelper.GetLatestChanges(_appSettings.DataFolder + "/" + excelFileName, _appSettings.SourceUrl, _appSettings.SourceUser, _appSettings.SourcePassword, _appSettings.SourceRefreshMinutes).ConfigureAwait(true);
-                ExcelHelper.ProcessExcelSheet(_appSettings.DataFolder + "/" + excelFileName, ministryKeywords, generalKeywords, ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs, out int totalRfcs);
+                int totalRfcs = _excelService.ProcessRfcs(ministryKeywords, generalKeywords, ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs);
                 _logger.LogInformation("Total RFCs processed: {totalRfcs}", totalRfcs);
                 _logger.LogInformation("Ministry RFCs found: {ministryRfcsCount}", ministryRfcs.Count);
                 _logger.LogInformation("General RFCs found: {generalRfcsCount}", generalRfcs.Count);
@@ -87,12 +88,12 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
                 wordHelper.CreateWordFile(ref wordFileStream, ministryRfcs, generalRfcs, otherRfcs, previousRfcs);
                 _userService.SavePreviousRfcs(ministryRfcs.Union(generalRfcs).Union(otherRfcs));
                 wordFileStream.Position = 0;  //reset filestream for download
-                var cd = new System.Net.Mime.ContentDisposition
+                System.Net.Mime.ContentDisposition contentDisposition = new()
                 {
-                    FileName = wordFileName,
+                    FileName = "RFC-" + DateTime.Now.ToString("yyyy-MM-dd HHmmss") + ".docx",
                     Inline = true,
                 };
-                Response.Headers.Append("Content-Disposition", cd.ToString());
+                Response.Headers.Append("Content-Disposition", contentDisposition.ToString());
                 return File(wordFileStream, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
             }
             catch (Exception ex)

@@ -1,10 +1,11 @@
 ﻿using RfcBuddy.App.Objects;
+using RfcBuddy.App.Services;
 using System.Data;
 
-namespace RfcBuddy.App.Core.Tests
+namespace RfcBuddy.App.Tests.Services
 {
     [TestClass()]
-    public class ExcelHelperTests
+    public class ExcelServiceTests
     {
         [TestMethod()]
         public void ReadRfcTest()
@@ -20,7 +21,7 @@ namespace RfcBuddy.App.Core.Tests
             dt.Columns.Add("Risk");
             object[] data = new[] { "CHG0072560", "Approved", "Windows", "starsky, hutch", "2024 - 03 - 18  1:00:00 PM", "2024-03-25  1:00:00 PM", "Standard Change 049", "Low risk, this is a routine process that is repeated many times." };
             dt.LoadDataRow(data, true);
-            Rfc rfc = ExcelHelper.ReadRfc(ref dt, 0);
+            Rfc rfc = ExcelService.ReadRfc(ref dt, 0);
             Assert.AreEqual("CHG0072560", rfc.RfcNumber);
             Assert.AreEqual("Approved", rfc.ApprovalStatus);
         }
@@ -41,8 +42,24 @@ namespace RfcBuddy.App.Core.Tests
                 Description = "RFC description",
                 RiskAssessment = "No risk to assets",
             };
-            var actual = ExcelHelper.RfcKeywordMatches(ref rfc, [.. keywords]);
+            var actual = ExcelService.RfcKeywordMatches(ref rfc, [.. keywords]);
             Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod()]
+        public void RfcKeywordAddedToRfc()
+        {
+            Rfc rfc = new("123456")
+            {
+                AssetTags = "Tag1 ,Tag2,Tag3",
+                Description = "RFC description",
+                RiskAssessment = "No risk to assets",
+            };
+            Assert.AreEqual(0, rfc.Keywords.Count);
+            List<string> keywords = ["Tag2", "Foo"];
+            _ = ExcelService.RfcKeywordMatches(ref rfc, keywords);
+            Assert.AreEqual(1, rfc.Keywords.Count);
+            Assert.AreEqual("Tag2", rfc.Keywords[0]);
         }
     }
 }

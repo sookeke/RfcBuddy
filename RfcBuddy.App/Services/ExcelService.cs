@@ -4,10 +4,22 @@ using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace RfcBuddy.App.Core;
+namespace RfcBuddy.App.Services;
 
-public static class ExcelHelper
+public interface IExcelService
 {
+    public int ProcessRfcs(List<string> ministryKeywords, List<string> generalKeywords, List<string> ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs);
+}
+
+public class ExcelService(IAppSettingsService appSettingsService) : IExcelService
+{
+    /// <summary>
+    /// The app settings object.
+    /// </summary>
+    private readonly AppSettings _appSettings = appSettingsService.AppSettings;
+
+    private const string excelFileName = "ServiceNow-365-Day-Changes.xlsx";
+
     //Column numbers in the Excel sheet with useful values
     private const int colRfcNo = 0;
     private const int colApproval = 1;
@@ -19,58 +31,63 @@ public static class ExcelHelper
     private const int colRisk = 7;
 
     /// <summary>
-    /// Processes the OCIO changes
+    /// Processes the RFCs in the Excel sheet
     /// </summary>
-    /// <param name="excelFile">The 365-day Excel input file</param>
     /// <param name="ministryKeywords">A list of ministry-relevant keywords</param>
     /// <param name="generalKeywords">A list of keywords that affect Government systems used by the minisry</param>
     /// <param name="ignoreKeywords">A list of keywords to ignore (e.g. systems from other ministries)</param>
-    public static void ProcessExcelSheet(string excelFile, List<string> ministryKeywords, List<string> generalKeywords, List<string> ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs, out int totalRfcs)
+    /// <returns>The number of total RFCs that were processed</returns>
+    public int ProcessRfcs(List<string> ministryKeywords, List<string> generalKeywords, List<string> ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs)
     {
-        //Required for the ExcelDataReader to understand the encoding of the 365-day change Excel file.
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         ministryRfcs = [];
         generalRfcs = [];
         otherRfcs = [];
-        totalRfcs = 0;
-        //Read Excel file
-        DataSet? excelData = null;
-        using (var excelFileStream = File.Open(excelFile, FileMode.Open, FileAccess.Read))
+        int totalRfcs = 0;
+        string excelFile = _appSettings.DataFolder + "/" + excelFileName;
+        if (File.Exists(excelFile))
         {
-            using var excelDataReader = ExcelReaderFactory.CreateReader(excelFileStream);
-            excelData = excelDataReader.AsDataSet();
-        }
-        if (null != excelData && excelData.Tables.Count > 0)
-        {
-            //Parse and filter RFCs from Excel data
-            DataTable Rfcs = excelData.Tables[0];
-            int currentRow = 1;
-            while (currentRow < Rfcs.Rows.Count)
+            //Required for the ExcelDataReader to understand the encoding of the 365-day change Excel file.
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //Read the Excel file into a dataset for processing
+            DataSet? excelData = null;
+            using (var excelFileStream = File.Open(excelFile, FileMode.Open, FileAccess.Read))
             {
-                Rfc currentRfc = ReadRfc(ref Rfcs, currentRow);
-                if (!string.IsNullOrEmpty(currentRfc.RfcNumber))
+                using var excelDataReader = ExcelReaderFactory.CreateReader(excelFileStream);
+                excelData = excelDataReader.AsDataSet();
+            }
+            if (null != excelData && excelData.Tables.Count > 0)
+            {
+                //Parse and filter RFCs from Excel data
+                DataTable Rfcs = excelData.Tables[0];
+                int currentRow = 1;
+                while (currentRow < Rfcs.Rows.Count)
                 {
-                    totalRfcs++;
-                    //Ignore RFCs that contain keywords that should be filtered out.
-                    if (!RfcKeywordMatches(ref currentRfc, ignoreKeywords))
+                    Rfc currentRfc = ReadRfc(ref Rfcs, currentRow);
+                    if (!string.IsNullOrEmpty(currentRfc.RfcNumber))
                     {
-                        if (RfcKeywordMatches(ref currentRfc, ministryKeywords))
+                        totalRfcs++;
+                        //Ignore RFCs that contain keywords that should be filtered out.
+                        if (!RfcKeywordMatches(ref currentRfc, ignoreKeywords))
                         {
-                            ministryRfcs.Add(currentRfc);
-                        }
-                        else if (RfcKeywordMatches(ref currentRfc, generalKeywords))
-                        {
-                            generalRfcs.Add(currentRfc);
-                        }
-                        else
-                        {
-                            otherRfcs.Add(currentRfc);
+                            if (RfcKeywordMatches(ref currentRfc, ministryKeywords))
+                            {
+                                ministryRfcs.Add(currentRfc);
+                            }
+                            else if (RfcKeywordMatches(ref currentRfc, generalKeywords))
+                            {
+                                generalRfcs.Add(currentRfc);
+                            }
+                            else
+                            {
+                                otherRfcs.Add(currentRfc);
+                            }
                         }
                     }
+                    currentRow++;
                 }
-                currentRow++;
             }
         }
+        return totalRfcs;
     }
 
     /// <summary>
@@ -105,12 +122,12 @@ public static class ExcelHelper
     }
 
     /// <summary>
-    /// Checks whether a list of keywords matches the given RFC.
+    /// Checks whether any keyword in a list of keywords matches the given RFC.
     /// Matching is case-insensitive, and only matches whole words.
     /// </summary>
-    /// <param name="rfc">The RFC to check</param>
+    /// <param name="rfc">The RFC to check. Any matched keywords are added to the RFC object.</param>
     /// <param name="keywords">The list of keywords</param>
-    /// <returns></returns>
+    /// <returns>True if any of the keywords match, false otherwise.</returns>
     internal static bool RfcKeywordMatches(ref Rfc rfc, List<string> keywords)
     {
         bool match = false;

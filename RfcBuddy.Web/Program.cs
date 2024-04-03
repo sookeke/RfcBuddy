@@ -12,6 +12,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IPrincipal>(provider => provider.GetService<IHttpContextAccessor>()!.HttpContext!.User);
 builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IExcelService, ExcelService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

@@ -37,5 +37,11 @@ public class TestBase
         mockService.Setup(x => x.GetUserKeywords(out list1, out list2, out list3));
         return mockService.Object;
     }
+
+    protected static IExcelService MockExcelService()
+    {
+        var mockService = new Mock<IExcelService>();
+        return mockService.Object;
+    }
     #endregion
 }

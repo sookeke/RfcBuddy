@@ -16,7 +16,8 @@ public class HomeControllerTests : TestBase
         var logger = InitializeLogger<HomeController>();
         var appSettingsService = MockAppSettingsService();
         var userService = MockUserService();
-        _controller = new(logger, appSettingsService, userService)
+        var excelService = MockExcelService();
+        _controller = new(logger, appSettingsService, userService, excelService)
         {
             ControllerContext = new ControllerContext()
             {
