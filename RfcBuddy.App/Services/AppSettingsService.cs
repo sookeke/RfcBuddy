@@ -35,7 +35,7 @@ public class AppSettingsService : IAppSettingsService
     ///   },
     /// </summary>
     private const string sectionSourceInfo = "SourceInfo";
-    
+
     /// <summary>
     /// The URL of the Excel file with the 365-day changes
     /// </summary>
@@ -73,6 +73,7 @@ public class AppSettingsService : IAppSettingsService
         _appSettings = new()
         {
             DataFolder = config[keyDataFolder] ?? "./data",
+            ExcelFileName = "ServiceNow-365-Day-Changes.xlsx",
         };
         if (string.IsNullOrWhiteSpace(config[sectionSourceInfo + ":" + keySourceUrl365]))
         {

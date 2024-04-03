@@ -1,8 +1,7 @@
 ﻿using RfcBuddy.App.Objects;
-using RfcBuddy.App.Services;
 using System.Data;
 
-namespace RfcBuddy.App.Tests.Services
+namespace RfcBuddy.App.Services.Tests
 {
     [TestClass()]
     public class ExcelServiceTests

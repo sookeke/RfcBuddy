@@ -6,19 +6,33 @@ using System.Text.RegularExpressions;
 
 namespace RfcBuddy.App.Services;
 
-public interface IExcelService
+/// <summary>
+/// Service to process the Excel file and read RFCs from it
+/// </summary>
+public interface IRfcService
 {
+    /// <summary>
+    /// Processes the given keywords and returns relevant RFCs.
+    /// </summary>
+    /// <param name="ministryKeywords">A list of ministry-relevant keywords.</param>
+    /// <param name="generalKeywords">A list of keywords that affect Government systems used by the ministry.</param>
+    /// <param name="ignoreKeywords">A list of keywords to ignore (e.g. systems from other ministries).</param>
+    /// <param name="ministryRfcs">Ministry-specific RFCs.</param>
+    /// <param name="generalRfcs">General RFCs.</param>
+    /// <param name="otherRfcs">RFCs that are neither ministry-specific nor general, but were not in the Ignore list.</param>
+    /// <returns>The total number of RFCs that were processed</returns>
     public int ProcessRfcs(List<string> ministryKeywords, List<string> generalKeywords, List<string> ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs);
 }
 
-public class ExcelService(IAppSettingsService appSettingsService) : IExcelService
+/// <summary>
+/// Service to process the Excel file and read RFCs from it
+/// </summary>
+public class ExcelService(IAppSettingsService appSettingsService) : IRfcService
 {
     /// <summary>
     /// The app settings object.
     /// </summary>
     private readonly AppSettings _appSettings = appSettingsService.AppSettings;
-
-    private const string excelFileName = "ServiceNow-365-Day-Changes.xlsx";
 
     //Column numbers in the Excel sheet with useful values
     private const int colRfcNo = 0;
@@ -31,19 +45,22 @@ public class ExcelService(IAppSettingsService appSettingsService) : IExcelServic
     private const int colRisk = 7;
 
     /// <summary>
-    /// Processes the RFCs in the Excel sheet
+    /// Processes the given keywords and returns relevant RFCs from the Excel sheet
     /// </summary>
     /// <param name="ministryKeywords">A list of ministry-relevant keywords</param>
-    /// <param name="generalKeywords">A list of keywords that affect Government systems used by the minisry</param>
+    /// <param name="generalKeywords">A list of keywords that affect Government systems used by the ministry</param>
     /// <param name="ignoreKeywords">A list of keywords to ignore (e.g. systems from other ministries)</param>
-    /// <returns>The number of total RFCs that were processed</returns>
+    /// <param name="ministryRfcs">Ministry-specific RFCs.</param>
+    /// <param name="generalRfcs">General RFCs.</param>
+    /// <param name="otherRfcs">RFCs that are neither ministry-specific nor general, but were not in the Ignore list.</param>
+    /// <returns>The total number of RFCs that were processed</returns>
     public int ProcessRfcs(List<string> ministryKeywords, List<string> generalKeywords, List<string> ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs)
     {
         ministryRfcs = [];
         generalRfcs = [];
         otherRfcs = [];
         int totalRfcs = 0;
-        string excelFile = _appSettings.DataFolder + "/" + excelFileName;
+        string excelFile = _appSettings.DataFolder + "/" + _appSettings.ExcelFileName;
         if (File.Exists(excelFile))
         {
             //Required for the ExcelDataReader to understand the encoding of the 365-day change Excel file.
@@ -95,7 +112,7 @@ public class ExcelService(IAppSettingsService appSettingsService) : IExcelServic
     /// </summary>
     /// <param name="changes">The source data with all RFCs</param>
     /// <param name="currentRow">The row where the current RFC starts</param>
-    /// <returns></returns>
+    /// <returns>The RFC</returns>
     internal static Rfc ReadRfc(ref DataTable changes, int currentRow)
     {
         Rfc result = new(string.Empty);

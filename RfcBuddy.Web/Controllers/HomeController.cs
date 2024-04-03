@@ -15,7 +15,7 @@ namespace RfcBuddy.Web.Controllers;
 /// <param name="appSettingsService">The service to get the AppSettings object from</param>
 /// <param name="userService">The user service</param>
 [Authorize]
-public class HomeController(ILogger<HomeController> logger, IAppSettingsService appSettingsService, IUserService userService, IExcelService excelService) : Controller
+public class HomeController(ILogger<HomeController> logger, IAppSettingsService appSettingsService, IUserService userService, IRfcService excelService, IWordService wordService) : Controller
 {
     /// <summary>
     /// Use to log any events
@@ -35,7 +35,12 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
     /// <summary>
     /// Service to process the RFCs in the Excel sheet
     /// </summary>
-    private readonly IExcelService _excelService=excelService;
+    private readonly IRfcService _excelService = excelService;
+
+    /// <summary>
+    /// Service to turn the RFCs into a Word document
+    /// </summary>
+    private readonly IWordService _wordService = wordService;
 
     /// <summary>
     /// Gets the homepage
@@ -76,16 +81,15 @@ public class HomeController(ILogger<HomeController> logger, IAppSettingsService 
                 {
                     Directory.CreateDirectory(_appSettings.DataFolder);
                 }
-                await WebHelper.GetLatestChanges(_appSettings.DataFolder + "/" + excelFileName, _appSettings.SourceUrl, _appSettings.SourceUser, _appSettings.SourcePassword, _appSettings.SourceRefreshMinutes).ConfigureAwait(true);
+                await WebHelper.GetLatestChanges(_appSettings.DataFolder + "/" + _appSettings.ExcelFileName, _appSettings.SourceUrl, _appSettings.SourceUser, _appSettings.SourcePassword, _appSettings.SourceRefreshMinutes).ConfigureAwait(true);
                 int totalRfcs = _excelService.ProcessRfcs(ministryKeywords, generalKeywords, ignoreKeywords, out List<Rfc> ministryRfcs, out List<Rfc> generalRfcs, out List<Rfc> otherRfcs);
                 _logger.LogInformation("Total RFCs processed: {totalRfcs}", totalRfcs);
                 _logger.LogInformation("Ministry RFCs found: {ministryRfcsCount}", ministryRfcs.Count);
                 _logger.LogInformation("General RFCs found: {generalRfcsCount}", generalRfcs.Count);
                 _logger.LogInformation("Other RFCs found: {otherRfcsCount}", otherRfcs.Count);
                 List<PreviousRfc> previousRfcs = _userService.GetPreviousRfcs();
-                WordHelper wordHelper = new();
                 Stream wordFileStream = new MemoryStream();
-                wordHelper.CreateWordFile(ref wordFileStream, ministryRfcs, generalRfcs, otherRfcs, previousRfcs);
+                _wordService.CreateWordFile(ref wordFileStream, ministryRfcs, generalRfcs, otherRfcs, previousRfcs);
                 _userService.SavePreviousRfcs(ministryRfcs.Union(generalRfcs).Union(otherRfcs));
                 wordFileStream.Position = 0;  //reset filestream for download
                 System.Net.Mime.ContentDisposition contentDisposition = new()

@@ -38,9 +38,15 @@ public class TestBase
         return mockService.Object;
     }
 
-    protected static IExcelService MockExcelService()
+    protected static IRfcService MockExcelService()
     {
-        var mockService = new Mock<IExcelService>();
+        var mockService = new Mock<IRfcService>();
+        return mockService.Object;
+    }
+
+    protected static IWordService MockWordService()
+    {
+        var mockService = new Mock<IWordService>();
         return mockService.Object;
     }
     #endregion
