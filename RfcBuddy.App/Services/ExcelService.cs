@@ -1,6 +1,7 @@
 ﻿using ExcelDataReader;
 using RfcBuddy.App.Objects;
 using System.Data;
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -52,13 +53,14 @@ public class ExcelService(IAppSettingsService appSettingsService) : IRfcService
 
     private const string excelFileName = "ServiceNow-365-Day-Changes.xlsx";
 
+    private string ExcelFile => Path.Combine(_appSettings.DataFolder, excelFileName);
+
     /// <summary>
     /// Gets the latest changes if it's been longer than the refresh interval in the app settings.
     /// </summary>
     public async Task GetLatestChanges()
     {
-        string excelFile = _appSettings.DataFolder + "/" + excelFileName;
-        if (!File.Exists(excelFile) || File.GetLastWriteTimeUtc(excelFile) < DateTime.UtcNow.AddMinutes(0 - _appSettings.SourceRefreshInterval))
+        if (!File.Exists(ExcelFile) || File.GetLastWriteTimeUtc(ExcelFile) < DateTime.UtcNow.AddMinutes(0 - _appSettings.SourceRefreshInterval))
         {
             if (!Directory.Exists(_appSettings.DataFolder))
             {
@@ -71,7 +73,7 @@ public class ExcelService(IAppSettingsService appSettingsService) : IRfcService
             }
             using HttpClient client = new(handler);
             using var responseStream = await client.GetStreamAsync(_appSettings.SourceUrl).ConfigureAwait(true);
-            using var fileStream = new FileStream(excelFile, FileMode.Create);
+            using var fileStream = new FileStream(ExcelFile, FileMode.Create);
             await responseStream.CopyToAsync(fileStream).ConfigureAwait(true);
             responseStream.Close();
         }
@@ -93,14 +95,13 @@ public class ExcelService(IAppSettingsService appSettingsService) : IRfcService
         generalRfcs = [];
         otherRfcs = [];
         int totalRfcs = 0;
-        string excelFile = _appSettings.DataFolder + "/" + excelFileName;
-        if (File.Exists(excelFile))
+        if (File.Exists(ExcelFile))
         {
             //Required for the ExcelDataReader to understand the encoding of the 365-day change Excel file.
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             //Read the Excel file into a dataset for processing
             DataSet? excelData = null;
-            using (var excelFileStream = File.Open(excelFile, FileMode.Open, FileAccess.Read))
+            using (var excelFileStream = File.Open(ExcelFile, FileMode.Open, FileAccess.Read))
             {
                 using var excelDataReader = ExcelReaderFactory.CreateReader(excelFileStream);
                 excelData = excelDataReader.AsDataSet();
@@ -159,11 +160,11 @@ public class ExcelService(IAppSettingsService appSettingsService) : IRfcService
                 Description = changes.Rows[currentRow].ItemArray[colDescription]?.ToString() ?? string.Empty,
                 RiskAssessment = changes.Rows[currentRow].ItemArray[colRisk]?.ToString() ?? string.Empty
             };
-            if (DateTime.TryParse(changes.Rows[currentRow].ItemArray[colStartDate]?.ToString(), out DateTime startDate))
+            if (DateTime.TryParse(changes.Rows[currentRow].ItemArray[colStartDate]?.ToString(), new CultureInfo("en-US"), out DateTime startDate))
             {
                 result.StartDate = startDate;
             }
-            if (DateTime.TryParse(changes.Rows[currentRow].ItemArray[colEndDate]?.ToString(), out DateTime endDate))
+            if (DateTime.TryParse(changes.Rows[currentRow].ItemArray[colEndDate]?.ToString(), new CultureInfo("en-US"), out DateTime endDate))
             {
                 result.EndDate = endDate;
             }

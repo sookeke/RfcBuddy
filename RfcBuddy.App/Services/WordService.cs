@@ -115,7 +115,7 @@ public class WordService : IWordService
         int pNewCount = 0;
         foreach (Rfc currentRfc in rfcs.Where(x => x.StartDate > now || x.EndDate < now))
         {
-            PreviousRfc? previousRfc = previousRfcs.FirstOrDefault(x => x.RfcNumber == currentRfc.RfcNumber);
+            PreviousRfc? previousRfc = previousRfcs.Find(x => x.RfcNumber == currentRfc.RfcNumber);
             if (null != previousRfc
                 && currentRfc.StartDate == previousRfc.StartDate
                 && currentRfc.EndDate == previousRfc.EndDate

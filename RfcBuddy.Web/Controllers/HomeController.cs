@@ -92,7 +92,7 @@ public class HomeController(ILogger<HomeController> logger, IUserService userSer
             }
             catch (Exception ex)
             {
-                _logger.LogCritical("Exception: {stackTrace}", ex);
+                _logger.LogCritical(ex, "Exception: ");
                 ModelState.AddModelError("Exception", "Error while processing the keywords: " + ex.Message);
             }
             _logger.LogInformation("Processing complete: {currentDateTime}", DateTime.Now.ToString());

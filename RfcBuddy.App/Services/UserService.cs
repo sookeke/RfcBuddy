@@ -81,13 +81,12 @@ public class UserService(IAppSettingsService appSettingsService, IPrincipal user
     /// <summary>
     /// The relative path to the previous RFCs file.
     /// </summary>
-    private string PreviousRfcsFilePath
-    {
-        get
-        {
-            return _appSettings.DataFolder + "/" + UserId;
-        }
-    }
+    private string PreviousRfcsFilePath => Path.Combine(_appSettings.DataFolder, UserId);
+
+    /// <summary>
+    /// The relative path to the previous RFCs file, including the filename.
+    /// </summary>
+    private string PreviousRfcsFile => Path.Combine(PreviousRfcsFilePath, previousRfcsFileName);
 
     /// <summary>
     /// Loads the previously reviewed RFCs into a list.
@@ -96,9 +95,9 @@ public class UserService(IAppSettingsService appSettingsService, IPrincipal user
     public List<PreviousRfc> GetPreviousRfcs()
     {
         List<PreviousRfc> result = [];
-        if (File.Exists(PreviousRfcsFilePath + "/" + previousRfcsFileName))
+        if (File.Exists(PreviousRfcsFile))
         {
-            using StreamReader previousRfcs = File.OpenText(PreviousRfcsFilePath + "/" + previousRfcsFileName);
+            using StreamReader previousRfcs = File.OpenText(PreviousRfcsFile);
             while (!previousRfcs.EndOfStream)
             {
                 string? previousRfc = previousRfcs.ReadLine();
@@ -133,13 +132,13 @@ public class UserService(IAppSettingsService appSettingsService, IPrincipal user
         {
             Directory.CreateDirectory(PreviousRfcsFilePath);
         }
-        if (!File.Exists(PreviousRfcsFilePath + "/" + previousRfcsFileName))
+        if (!File.Exists(PreviousRfcsFile))
         {
-            using FileStream tmp = File.Create(PreviousRfcsFilePath + "/" + previousRfcsFileName);
+            using FileStream tmp = File.Create(PreviousRfcsFile);
             tmp.Close();
         }
-        using FileStream previousRfcsFile = File.Open(PreviousRfcsFilePath + "/" + previousRfcsFileName, FileMode.Truncate);
-        using (StreamWriter previousRfcs = new(previousRfcsFile))
+        using FileStream previousRfcsFileStream = File.Open(PreviousRfcsFile, FileMode.Truncate);
+        using (StreamWriter previousRfcs = new(previousRfcsFileStream))
         {
             foreach (Rfc rfc in rfcs)
             {
@@ -152,7 +151,7 @@ public class UserService(IAppSettingsService appSettingsService, IPrincipal user
             }
             previousRfcs.Close();
         }
-        previousRfcsFile.Close();
+        previousRfcsFileStream.Close();
     }
     #endregion
 
@@ -170,13 +169,12 @@ public class UserService(IAppSettingsService appSettingsService, IPrincipal user
     /// <summary>
     /// The relative path to the keywords file.
     /// </summary>
-    private string KeywordsFilePath
-    {
-        get
-        {
-            return _appSettings.DataFolder + "/" + UserId;
-        }
-    }
+    private string KeywordsFilePath => Path.Combine(_appSettings.DataFolder, UserId);
+
+    /// <summary>
+    /// The relative path to the keywords file, including the filename.
+    /// </summary>
+    private string KeywordsFile => Path.Combine(KeywordsFilePath, keywordsFileName);
 
     /// <summary>
     /// Turns the character-separated keywords into a list.
@@ -203,13 +201,13 @@ public class UserService(IAppSettingsService appSettingsService, IPrincipal user
         ministryKeywords = [];
         generalKeywords = [];
         ignoreKeywords = [];
-        if (File.Exists(KeywordsFilePath + "/" + keywordsFileName))
+        if (File.Exists(KeywordsFile))
         {
-            using StreamReader keywordsFile = File.OpenText(KeywordsFilePath + "/" + keywordsFileName);
-            ministryKeywords = ParseKeywords(keywordsFile.ReadLine());
-            generalKeywords = ParseKeywords(keywordsFile.ReadLine());
-            ignoreKeywords = ParseKeywords(keywordsFile.ReadLine());
-            keywordsFile.Close();
+            using StreamReader keywordsFileStream = File.OpenText(KeywordsFile);
+            ministryKeywords = ParseKeywords(keywordsFileStream.ReadLine());
+            generalKeywords = ParseKeywords(keywordsFileStream.ReadLine());
+            ignoreKeywords = ParseKeywords(keywordsFileStream.ReadLine());
+            keywordsFileStream.Close();
         }
     }
 
@@ -225,20 +223,20 @@ public class UserService(IAppSettingsService appSettingsService, IPrincipal user
         {
             Directory.CreateDirectory(KeywordsFilePath);
         }
-        if (!File.Exists(KeywordsFilePath + "/" + keywordsFileName))
+        if (!File.Exists(KeywordsFile))
         {
-            using FileStream tmp = File.Create(KeywordsFilePath + "/" + keywordsFileName);
+            using FileStream tmp = File.Create(KeywordsFile);
             tmp.Close();
         }
-        using FileStream keywordsFile = File.Open(KeywordsFilePath + "/" + keywordsFileName, FileMode.Truncate);
-        using (StreamWriter keywords = new(keywordsFile))
+        using FileStream keywordsFileStream = File.Open(KeywordsFile, FileMode.Truncate);
+        using (StreamWriter keywords = new(keywordsFileStream))
         {
             keywords.WriteLine(string.Join(keywordSeparator, ministryKeywords));
             keywords.WriteLine(string.Join(keywordSeparator, generalKeywords));
             keywords.WriteLine(string.Join(keywordSeparator, ignoreKeywords));
             keywords.Close();
         }
-        keywordsFile.Close();
+        keywordsFileStream.Close();
     }
     #endregion
 }
