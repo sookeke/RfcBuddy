@@ -3,6 +3,9 @@ using System.Text;
 
 namespace RfcBuddy.App.Core;
 
+/// <summary>
+/// Helps with various crypto functions
+/// </summary>
 internal static class Cryptography
 {
     /// <summary>

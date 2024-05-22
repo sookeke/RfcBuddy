@@ -1,19 +1,25 @@
-
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
-using RfcBuddy.Web.Services;
+using RfcBuddy.App.Services;
 using System.Security.Claims;
+using System.Security.Principal;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<IPrincipal>(provider => provider.GetService<IHttpContextAccessor>()!.HttpContext!.User);
 builder.Services.AddScoped<IAppSettingsService, AppSettingsService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRfcService, ExcelService>();
+builder.Services.AddScoped<IWordService, WordService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 //Authentication
+const string keycloakSection = "Keycloak";
 builder.Services.AddAuthentication(options =>
 {
     //Sets cookie authentication scheme
@@ -33,10 +39,10 @@ builder.Services.AddAuthentication(options =>
     })
     .AddOpenIdConnect(options =>
     {
-        options.Authority = $"{builder.Configuration.GetSection("Keycloak")["auth-server-url"]}/realms/{builder.Configuration.GetSection("Keycloak")["realm"]}";
-        options.ClientId = builder.Configuration.GetSection("Keycloak")["resource"];
-        options.ClientSecret = builder.Configuration.GetSection("Keycloak").GetSection("credentials")["secret"];
-        options.MetadataAddress = $"{builder.Configuration.GetSection("Keycloak")["auth-server-url"]}/realms/{builder.Configuration.GetSection("Keycloak")["realm"]}/.well-known/openid-configuration";
+        options.Authority = $"{builder.Configuration.GetSection(keycloakSection)["auth-server-url"]}/realms/{builder.Configuration.GetSection(keycloakSection)["realm"]}";
+        options.ClientId = builder.Configuration.GetSection(keycloakSection)["resource"];
+        options.ClientSecret = builder.Configuration.GetSection(keycloakSection).GetSection("credentials")["secret"];
+        options.MetadataAddress = $"{builder.Configuration.GetSection(keycloakSection)["auth-server-url"]}/realms/{builder.Configuration.GetSection(keycloakSection)["realm"]}/.well-known/openid-configuration";
         options.RequireHttpsMetadata = true;
         options.GetClaimsFromUserInfoEndpoint = true;
         options.ResponseType = OpenIdConnectResponseType.Code;

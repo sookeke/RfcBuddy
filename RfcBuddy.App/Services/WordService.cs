@@ -1,12 +1,28 @@
-﻿using RfcBuddy.App.Objects;
+﻿using RfcBuddy.App.Core;
+using RfcBuddy.App.Objects;
 using System.Drawing;
 using System.Text.RegularExpressions;
 using Xceed.Document.NET;
 using Xceed.Words.NET;
 
-namespace RfcBuddy.App.Core;
+namespace RfcBuddy.App.Services;
 
-public class WordHelper
+/// <summary>
+/// Service to create a Word document from the given RFCs
+/// </summary>
+public interface IWordService
+{
+    /// <summary>
+    /// Creates a Word file from the given RFCs.
+    /// </summary>
+    /// <param name="wordFile">The word file stream</param>
+    /// <param name="ministryRfcs">A list of ministry-related RFCs</param>
+    /// <param name="generalRfcs">A list of general RFCs</param>
+    /// <param name="otherRfcs">A list of other RFCs</param>
+    public void CreateWordFile(ref Stream wordFile, List<Rfc> ministryRfcs, List<Rfc> generalRfcs, List<Rfc> otherRfcs, List<PreviousRfc> previousRfcs);
+}
+
+public class WordService : IWordService
 {
     //Color definitions in the Word document
     private readonly Color ministryHighlight = Color.Red;
@@ -20,11 +36,11 @@ public class WordHelper
     /// <summary>
     /// Creates a Word file from the given RFCs.
     /// </summary>
-    /// <param name="wordFilePath">The word file stream</param>
-    /// <param name="ministryRFCs">A list of ministry-related RFCs</param>
-    /// <param name="generalRFCs">A list of general Government RFCs</param>
-    /// <param name="otherRFCs">A list of other RFCs</param>
-    public void CreateWordFile(ref Stream wordFile, List<Rfc> ministryRFCs, List<Rfc> generalRFCs, List<Rfc> otherRFCs, List<PreviousRfc> previousRFCs)
+    /// <param name="wordFile">The word file stream</param>
+    /// <param name="ministryRfcs">A list of ministry-related RFCs</param>
+    /// <param name="generalRfcs">A list of general RFCs</param>
+    /// <param name="otherRfcs">A list of other RFCs</param>
+    public void CreateWordFile(ref Stream wordFile, List<Rfc> ministryRfcs, List<Rfc> generalRfcs, List<Rfc> otherRfcs, List<PreviousRfc> previousRfcs)
     {
         using DocX document = DocX.Create(wordFile);
         //Header and legend
@@ -47,21 +63,21 @@ public class WordHelper
         //- Previously Reviewed
 
         //Ministry RFCs
-        Paragraph ministry = document.InsertParagraph("Ministry: " + ministryRFCs.Count + " RFCs");
+        Paragraph ministry = document.InsertParagraph("Ministry: " + ministryRfcs.Count + " RFCs");
         ministry.StyleId = "Heading1";
         ministry.Color(ministryHighlight);
-        AddRfcSection(document, ministryRFCs, previousRFCs, ministryHighlight);
+        AddRfcSection(document, ministryRfcs, previousRfcs, ministryHighlight);
 
         //General RFCs
-        Paragraph general = document.InsertParagraph("General: " + generalRFCs.Count + " RFCs");
+        Paragraph general = document.InsertParagraph("General: " + generalRfcs.Count + " RFCs");
         general.StyleId = "Heading1";
         general.Color(generalHighlight);
-        AddRfcSection(document, generalRFCs, previousRFCs, generalHighlight);
+        AddRfcSection(document, generalRfcs, previousRfcs, generalHighlight);
 
         //Other RFCs
-        Paragraph other = document.InsertParagraph("Other / unclassified: " + otherRFCs.Count + " RFCs");
+        Paragraph other = document.InsertParagraph("Other / unclassified: " + otherRfcs.Count + " RFCs");
         other.StyleId = "Heading1";
-        AddRfcSection(document, otherRFCs, previousRFCs, Color.Black);
+        AddRfcSection(document, otherRfcs, previousRfcs, Color.Black);
 
         document.Save();
     }
@@ -72,18 +88,18 @@ public class WordHelper
     /// <param name="document"></param>
     /// <param name="rfcs"></param>
     /// <param name="keywordHighlight"></param>
-    private void AddRfcSection(DocX document, List<Rfc> rfcs, List<PreviousRfc> previousRFCs, Color keywordHighlight)
+    private void AddRfcSection(DocX document, List<Rfc> rfcs, List<PreviousRfc> previousRfcs, Color keywordHighlight)
     {
         DateTime now = DateTime.Now;
-        List<string> unchangedRFCs = [];
+        List<string> unchangedRfcs = [];
         //Changes that are currently in progress
         Paragraph pProgress = document.InsertParagraph("In Progress");
         pProgress.StyleId = "Heading2";
         int pProgressCount = 0;
-        foreach (Rfc currentRFC in rfcs.Where(x => x.StartDate <= now && x.EndDate >= now))
+        foreach (Rfc currentRfc in rfcs.Where(x => x.StartDate <= now && x.EndDate >= now))
         {
             //Don't worry about previous RFCs - we want to see all changes that are currently in progress.
-            AddRfc(document, currentRFC, null, keywordHighlight);
+            AddRfc(document, currentRfc, null, keywordHighlight);
             document.InsertParagraph();
             document.InsertParagraph();
             pProgressCount++;
@@ -97,22 +113,22 @@ public class WordHelper
         Paragraph pNew = document.InsertParagraph("New or Changed");
         pNew.StyleId = "Heading2";
         int pNewCount = 0;
-        foreach (Rfc currentRFC in rfcs.Where(x => x.StartDate > now || x.EndDate < now))
+        foreach (Rfc currentRfc in rfcs.Where(x => x.StartDate > now || x.EndDate < now))
         {
-            PreviousRfc? previousRFC = previousRFCs.FirstOrDefault(x => x.RfcNumber == currentRFC.RfcNumber);
-            if (null != previousRFC
-                && currentRFC.StartDate == previousRFC.StartDate
-                && currentRFC.EndDate == previousRFC.EndDate
-                && Cryptography.VerifySha256Hash(currentRFC.AssetTags, previousRFC.AssetTagsHash)
-                && Cryptography.VerifySha256Hash(currentRFC.Description, previousRFC.DescriptionHash)
-                && Cryptography.VerifySha256Hash(currentRFC.RiskAssessment, previousRFC.RiskAssessmentHash)
+            PreviousRfc? previousRfc = previousRfcs.Find(x => x.RfcNumber == currentRfc.RfcNumber);
+            if (null != previousRfc
+                && currentRfc.StartDate == previousRfc.StartDate
+                && currentRfc.EndDate == previousRfc.EndDate
+                && Cryptography.VerifySha256Hash(currentRfc.AssetTags, previousRfc.AssetTagsHash)
+                && Cryptography.VerifySha256Hash(currentRfc.Description, previousRfc.DescriptionHash)
+                && Cryptography.VerifySha256Hash(currentRfc.RiskAssessment, previousRfc.RiskAssessmentHash)
                 )
             {
-                unchangedRFCs.Add(currentRFC.RfcNumber);
+                unchangedRfcs.Add(currentRfc.RfcNumber);
             }
             else
             {
-                AddRfc(document, currentRFC, previousRFC, keywordHighlight);
+                AddRfc(document, currentRfc, previousRfc, keywordHighlight);
                 document.InsertParagraph();
                 document.InsertParagraph();
                 pNewCount++;
@@ -127,9 +143,9 @@ public class WordHelper
         Paragraph pPrevious = document.InsertParagraph("Previously Reviewed");
         pPrevious.StyleId = "Heading2";
         int pPreviousCount = 0;
-        foreach (Rfc currentRFC in rfcs.Where(x => unchangedRFCs.Contains(x.RfcNumber)))
+        foreach (Rfc currentRfc in rfcs.Where(x => unchangedRfcs.Contains(x.RfcNumber)))
         {
-            AddRfc(document, currentRFC, null, keywordHighlight);
+            AddRfc(document, currentRfc, null, keywordHighlight);
             document.InsertParagraph();
             document.InsertParagraph();
             pPreviousCount++;
@@ -146,70 +162,70 @@ public class WordHelper
     /// <param name="document">The document to add the RFC to</param>
     /// <param name="rfc">The RFC to add</param>
     /// <param name="keywordHighlight">The colour to use for any keyword highlighting</param>
-    private void AddRfc(DocX document, Rfc rfc, PreviousRfc? previousRFC, Color keywordHighlight)
+    private void AddRfc(DocX document, Rfc rfc, PreviousRfc? previousRfc, Color keywordHighlight)
     {
-        Paragraph newRFC = document.InsertParagraph();
-        newRFC.Append("RFC: ").Bold();
-        newRFC.Append(rfc.RfcNumber.ToString());
-        newRFC.Append("\tStart: ").Bold();
-        if (null != previousRFC && rfc.StartDate != previousRFC.StartDate)
+        Paragraph newRfc = document.InsertParagraph();
+        newRfc.Append("RFC: ").Bold();
+        newRfc.Append(rfc.RfcNumber.ToString());
+        newRfc.Append("\tStart: ").Bold();
+        if (null != previousRfc && rfc.StartDate != previousRfc.StartDate)
         {
-            newRFC.Append(rfc.StartDate.ToString(wordDateFormat)).Color(changeHighlight);
+            newRfc.Append(rfc.StartDate.ToString(wordDateFormat)).Color(changeHighlight);
         }
         else if (DayOfWeek.Sunday == rfc.StartDate.DayOfWeek && "06:00:00" == rfc.StartDate.ToString("HH:mm:ss"))
         {
-            newRFC.Append(rfc.StartDate.ToString(wordDateFormat)).Color(sundayHighlight);
+            newRfc.Append(rfc.StartDate.ToString(wordDateFormat)).Color(sundayHighlight);
         }
         else
         {
-            newRFC.Append(rfc.StartDate.ToString(wordDateFormat));
+            newRfc.Append(rfc.StartDate.ToString(wordDateFormat));
         }
-        newRFC.Append("\t\tEnd: ").Bold();
-        if (null != previousRFC && rfc.EndDate != previousRFC.EndDate)
+        newRfc.Append("\t\tEnd: ").Bold();
+        if (null != previousRfc && rfc.EndDate != previousRfc.EndDate)
         {
-            newRFC.Append(rfc.EndDate.ToString(wordDateFormat)).Color(changeHighlight);
+            newRfc.Append(rfc.EndDate.ToString(wordDateFormat)).Color(changeHighlight);
         }
         else if (DayOfWeek.Sunday == rfc.EndDate.DayOfWeek && "09:00:00" == rfc.EndDate.ToString("HH:mm:ss"))
         {
-            newRFC.Append(rfc.EndDate.ToString(wordDateFormat)).Color(sundayHighlight);
+            newRfc.Append(rfc.EndDate.ToString(wordDateFormat)).Color(sundayHighlight);
         }
         else
         {
-            newRFC.Append(rfc.EndDate.ToString(wordDateFormat));
+            newRfc.Append(rfc.EndDate.ToString(wordDateFormat));
         }
-        newRFC.Append(Environment.NewLine);
-        newRFC.Append("Status: ").Bold();
-        newRFC.Append(rfc.ApprovalStatus);
-        newRFC.Append("\tPlatform: ").Bold();
-        newRFC.Append(rfc.Platform);
-        newRFC.Append("\tAsset Tags: ").Bold();
-        if (null == previousRFC || Cryptography.VerifySha256Hash(rfc.AssetTags, previousRFC.AssetTagsHash))
+        newRfc.Append(Environment.NewLine);
+        newRfc.Append("Status: ").Bold();
+        newRfc.Append(rfc.ApprovalStatus);
+        newRfc.Append("\tPlatform: ").Bold();
+        newRfc.Append(rfc.Platform);
+        newRfc.Append("\tAsset Tags: ").Bold();
+        if (null == previousRfc || Cryptography.VerifySha256Hash(rfc.AssetTags, previousRfc.AssetTagsHash))
         {
-            newRFC.Append(rfc.AssetTags);
-        }
-        else
-        {
-            newRFC.Append(rfc.AssetTags).Color(changeHighlight);
-        }
-        newRFC.Append(Environment.NewLine);
-        newRFC.Append("Description: ").Bold();
-        if (null == previousRFC || Cryptography.VerifySha256Hash(rfc.Description, previousRFC.DescriptionHash))
-        {
-            newRFC.Append(rfc.Description);
+            newRfc.Append(rfc.AssetTags);
         }
         else
         {
-            newRFC.Append(rfc.Description).Color(changeHighlight);
+            newRfc.Append(rfc.AssetTags).Color(changeHighlight);
         }
-        newRFC.Append(Environment.NewLine);
-        newRFC.Append("Risk Assessment: ").Bold();
-        if (null == previousRFC || Cryptography.VerifySha256Hash(rfc.RiskAssessment, previousRFC.RiskAssessmentHash))
+        newRfc.Append(Environment.NewLine);
+        newRfc.Append("Description: ").Bold();
+        if (null == previousRfc || Cryptography.VerifySha256Hash(rfc.Description, previousRfc.DescriptionHash))
         {
-            newRFC.Append(rfc.RiskAssessment);
+            newRfc.Append(rfc.Description);
         }
         else
         {
-            newRFC.Append(rfc.RiskAssessment).Color(changeHighlight);
+            newRfc.Append(rfc.Description).Color(changeHighlight);
+        }
+        newRfc.Append(Environment.NewLine);
+        newRfc.Append("Risk Assessment: ").Bold();
+        if (null == previousRfc || Cryptography.VerifySha256Hash(rfc.RiskAssessment, previousRfc.RiskAssessmentHash))
+        {
+            newRfc.Append(rfc.RiskAssessment);
+        }
+        else
+        {
+            newRfc.Append(rfc.RiskAssessment).Color(changeHighlight);
         }
         //Highlight keywords
 
@@ -224,7 +240,7 @@ public class WordHelper
                 RegExOptions = RegexOptions.IgnoreCase,
                 NewFormatting = new Formatting() { FontColor = keywordHighlight }
             };
-            newRFC.ReplaceText(replaceTextOptions);
+            newRfc.ReplaceText(replaceTextOptions);
         }
     }
 }
