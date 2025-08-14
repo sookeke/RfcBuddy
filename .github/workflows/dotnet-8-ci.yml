@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: bcgov-c/ministry-gitops-jag-template/ci/dotnetcore/composite/dotnet-8-dependencies@v1
+      - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-dependencies@v1.0.0
         with: { dotnet_build_path: "" }
-      - uses: bcgov-c/ministry-gitops-jag-template/ci/dotnetcore/composite/dotnet-8-build@v1
+      - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-build@v1.0.0
         with: { dotnet_build_path: "", warn_as_error: "true" }
-      - uses: bcgov-c/ministry-gitops-jag-template/ci/dotnetcore/composite/dotnet-8-tests-msbuild@v1
+      - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-tests-msbuild@v1.0.0
         with:
           unit_test_folder: ""
           coverage_threshold: "80"
@@ -24,7 +24,7 @@ jobs:
     needs: build_test
     steps:
       - uses: actions/checkout@v4
-      - uses: bcgov-c/ministry-gitops-jag-template/ci/dotnetcore/composite/dotnet-8-package@v1
+      - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-package@v1.0.0
         with:
           dotnet_publish_subpath: "Your.Project"
           dotnet_publish_skip_publishtrimmed: "false"
