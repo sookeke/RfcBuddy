@@ -10,12 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-dependencies@v1.0.0
-        with: { dotnet_build_path: "" }
+        with: { dotnet_build_path: "RfcBuddy.Web" }
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-build@v1.0.0
         with: { dotnet_build_path: "", warn_as_error: "true" }
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-tests-msbuild@v1.0.0
         with:
-          unit_test_folder: ""
+          unit_test_folder: "RfcBuddy.App.Tests"
           coverage_threshold: "80"
           coverage_threshold_type: "line,branch"
 
