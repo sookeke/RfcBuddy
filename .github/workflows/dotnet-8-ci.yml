@@ -18,6 +18,7 @@ jobs:
           unit_test_folder: "src/RfcBuddy.App.Tests"
           coverage_threshold: "25"
           coverage_threshold_type: "line,branch"
+      - uses: bcgov/ag-devops/ci/dotnetcore/composite/docker-dind@v1.0.0
 
   publish_win:
     runs-on: windows-latest
