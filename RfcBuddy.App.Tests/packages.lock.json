@@ -2,11 +2,11 @@
   "version": 1,
   "dependencies": {
     "net8.0": {
-      "coverlet.collector": {
+      "coverlet.msbuild": {
         "type": "Direct",
-        "requested": "[6.0.2, )",
-        "resolved": "6.0.2",
-        "contentHash": "bJShQ6uWRTQ100ZeyiMqcFlhP7WJ+bCuabUs885dJiBEzMsJMSFr7BOyeCw4rgvQokteGi5rKQTlkhfQPUXg2A=="
+        "requested": "[3.2.0, )",
+        "resolved": "3.2.0",
+        "contentHash": "lu/eJJpqJb4qy3BGPtDD/LI5RSOwXYYyRErTyaG0OTP69llzVK3FEe74hBQx0JtLUTLEVBfERV4uGYcE1Br2sg=="
       },
       "JunitXml.TestLogger": {
         "type": "Direct",
