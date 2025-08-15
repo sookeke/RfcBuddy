@@ -1,8 +1,8 @@
 ﻿using RfcBuddy.App.Core;
 using RfcBuddy.App.Objects;
-using System.Drawing;
 using System.Text.RegularExpressions;
 using Xceed.Document.NET;
+using Xceed.Drawing;
 using Xceed.Words.NET;
 
 namespace RfcBuddy.App.Services;
