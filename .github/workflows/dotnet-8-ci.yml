@@ -5,27 +5,45 @@ on:
   pull_request:
 
 jobs:
-  build_test:
+  lint:
+    name: .NET 8 Lint
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-lint@v1.0.0
+
+  build:
+    name: .NET 8 Build
+    runs-on: ubuntu-latest
+    needs: lint
     steps:
       - uses: actions/checkout@v4
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-dependencies@v1.0.0
-        with: { dotnet_build_path: "src/RfcBuddy.Web" }
+        with:
+          dotnet_build_path: "src/RfcBuddy.Web"
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-build@v1.0.0
-        with: { dotnet_build_path: "src/RfcBuddy.Web", warn_as_error: "true" }
+        with:
+          dotnet_build_path: "src/RfcBuddy.Web"
+          warn_as_error: "true"
+
+  test:
+    name: .NET 8 Unit Tests
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-tests-msbuild@v1.0.0
         with:
           unit_test_folder: "src/RfcBuddy.App.Tests"
           coverage_threshold: "25"
           coverage_threshold_type: "line,branch"
-      - uses: bcgov/ag-devops/ci/dotnetcore/composite/docker-dind@v1.0.0
 
-  publish_win:
-    runs-on: windows-latest
-    needs: build_test
+  docker:
+    name: Docker DinD Environment
+    runs-on: ubuntu-latest
+    needs: test
     steps:
       - uses: actions/checkout@v4
-      - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-package@v1.0.0
-        with:
-          dotnet_publish_subpath: "RfcBuddy.Web"
-          dotnet_publish_skip_publishtrimmed: "false"
+      - uses: bcgov/ag-devops/ci/.shared/docker-dind@v1.0.0
