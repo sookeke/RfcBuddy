@@ -26,5 +26,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-package@v1.0.0
         with:
-          dotnet_publish_subpath: "Your.Project"
+          dotnet_publish_subpath: "RfcBuddy.Web"
           dotnet_publish_skip_publishtrimmed: "false"
