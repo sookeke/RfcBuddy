@@ -1,0 +1,85 @@
+html {
+    font-size: 16px;
+    font-family: BCSans, Noto Sans, Roboto, sans-serif;
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #FFF;
+}
+
+aside {
+    width: 250px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    background-color: #0E3468;
+}
+
+header,
+main,
+footer {
+    margin-left: 250px;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+
+nav .navbar-brand img {
+    width: 200px;
+}
+
+nav .navbar-nav {
+    padding: 20px;
+}
+
+nav .nav-link,
+nav .nav-link:hover {
+    color: #FFF;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+header {
+    flex: none;
+    padding-top: 20px;
+    border-bottom: 2px solid #DDD;
+}
+
+    header h1 {
+        font-weight: bold;
+        font-size: 2em;
+    }
+
+main {
+    flex: 1;
+    padding-top: 20px;
+}
+
+    main form .form-group {
+        margin: 10px 0;
+    }
+
+    main form .btn-primary {
+        background-color: #0E3468;
+        border-color: #0E3468;
+    }
+
+    main form .field-validation-error {
+        color: #dc3545;
+        font-size: 0.8rem;
+    }
+
+
+footer {
+    background-color: #0E3468;
+    color: #FFF;
+    border-top: 2px solid #F9B819;
+    line-height: 3em;
+    height: 50px;
+    flex: none;
+}

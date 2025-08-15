@@ -1,0 +1,40 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+@model HomeViewModel
+
+<div>
+    <form method="post" asp-action="Index">
+        <p>
+            The RFC Buddy takes the 365-day change schedule published daily by the OCIO and applies filters and highlights based on keywords. The current schedule is downloaded automatically.
+            It then provides a Word document that's pre-formatted for easy reference during CAB meetings.
+        </p>
+        <p class="alert alert-info">
+            Keywords are comma-separated in the fields below.<br />
+            Keyword matching is case-insensitive and will only match full words, e.g. "Pike" will not match "Spikes".
+        </p>
+        @if (ViewContext.ModelState.ContainsKey("Exception"))
+        {
+            <p class="alert alert-danger">
+                @ViewContext.ModelState["Exception"]?.Errors[0].ErrorMessage
+            </p>
+        }
+        <div class="form-group">
+            <label asp-for="MinistryKeywords"></label><br />
+            <textarea asp-for="MinistryKeywords" class="form-control"></textarea>
+            <span asp-validation-for="MinistryKeywords"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="GeneralKeywords"></label><br />
+            <textarea asp-for="GeneralKeywords" class="form-control"></textarea>
+            <span asp-validation-for="GeneralKeywords"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="IgnoreKeywords"></label><br />
+            <textarea asp-for="IgnoreKeywords" class="form-control"></textarea>
+            <span asp-validation-for="IgnoreKeywords"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Apply filters and download RFCs</button>
+    </form>
+</div>
