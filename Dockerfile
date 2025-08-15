@@ -16,7 +16,7 @@ RUN dotnet restore ./src/RfcBuddy.Web/RfcBuddy.Web.csproj
 # Copy the rest of the source code
 COPY . .
 
-# Build and publish
+# Build and publish, no need for test
 WORKDIR /app/src/RfcBuddy.Web
 RUN dotnet publish -c Release -o /out
 
