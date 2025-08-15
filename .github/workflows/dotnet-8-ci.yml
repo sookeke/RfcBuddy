@@ -12,7 +12,7 @@ jobs:
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-dependencies@v1.0.0
         with: { dotnet_build_path: "src/RfcBuddy.Web" }
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-build@v1.0.0
-        with: { dotnet_build_path: "RfcBuddy.Web", warn_as_error: "true" }
+        with: { dotnet_build_path: "src/RfcBuddy.Web", warn_as_error: "true" }
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-tests-msbuild@v1.0.0
         with:
           unit_test_folder: "src/RfcBuddy.App.Tests"
