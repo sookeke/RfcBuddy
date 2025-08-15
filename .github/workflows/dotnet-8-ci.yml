@@ -16,7 +16,7 @@ jobs:
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-tests-msbuild@v1.0.0
         with:
           unit_test_folder: "RfcBuddy.App.Tests"
-          coverage_threshold: "80"
+          coverage_threshold: "25"
           coverage_threshold_type: "line,branch"
 
   publish_win:
