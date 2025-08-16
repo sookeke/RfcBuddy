@@ -40,23 +40,24 @@ jobs:
           coverage_threshold: "25"
           coverage_threshold_type: "line,branch"
 
-  security-scan:
+  sast:
     runs-on: ubuntu-latest
     needs: [build, test]
     steps:
       - uses: actions/checkout@v4
 
-      - uses: bcgov/ag-devops/ci/security/sonarqube@v1.0.0
+      - uses: bcgov/ag-devops/ci/security/sast@v1.0.0
         with:
           project-key: RfcBuddyTest
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           sonar-host-url: ${{ vars.SONAR_HOST_URL }}
           coverage-report: TestResults/coverage/coverage.cobertura.xml
-  
+          gitleaks_license: ${{ secrets.GITLEAKS_LICENSE }}
+
   package:
     name: Package
     runs-on: ubuntu-latest
-    needs: security-scan
+    needs: sast
     steps:
       - uses: actions/checkout@v4
       - uses: bcgov/ag-devops/ci/.shared/docker-dind@v1.0.0
