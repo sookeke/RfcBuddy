@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.1.0](https://github.com/sookeke/RfcBuddy/compare/v1.0.0...v1.1.0) (2025-08-16)
+
+
+### Features
+
+* added ci workflow ([52fd898](https://github.com/sookeke/RfcBuddy/commit/52fd89884cfc32d45a86a3e1ad6001eb9809ac1b))
+* added ci workflow ([de3e95e](https://github.com/sookeke/RfcBuddy/commit/de3e95ea1d9efc75c8a1f9743aaa94378d8d536f))
+* added ci workflow ([cae1f52](https://github.com/sookeke/RfcBuddy/commit/cae1f528ee62c6bfc6c1280ada897d68fbacf809))
+* added ci workflow ([9ee03a4](https://github.com/sookeke/RfcBuddy/commit/9ee03a4cb6fc08a5e1cebe7678be89e466c85612))
+* added ci workflow ([d23c5de](https://github.com/sookeke/RfcBuddy/commit/d23c5de8261e0ff98f282100fc3e2d23bde935cf))
+* added ci workflow ([c318d2a](https://github.com/sookeke/RfcBuddy/commit/c318d2ab0b577ede7c1e262695916f220b022fc9))
+* added ci workflow ([8de02a7](https://github.com/sookeke/RfcBuddy/commit/8de02a7185d05ddb022f0e9c10bd0a1c10e76120))
+* added ci workflow ([f1d7cf7](https://github.com/sookeke/RfcBuddy/commit/f1d7cf7392e9b6568821a6f3d1449bdbb2790179))
+* added ci workflow ([3ff22d4](https://github.com/sookeke/RfcBuddy/commit/3ff22d46e4f4e0bc787f7ad3f8e3ab482c9a5643))
+* added ci workflow ([ecb81cb](https://github.com/sookeke/RfcBuddy/commit/ecb81cbf1f8b94cff94dbeb8c8b646736fb0b2d4))
+* added ci workflow ([112846d](https://github.com/sookeke/RfcBuddy/commit/112846d6a3b3c8f767b958f5f29506249931c68e))
+* added ci workflow ([5c23123](https://github.com/sookeke/RfcBuddy/commit/5c2312363c0477e47d4cd41e4d8ab24e8c403b02))
+* added ci workflow ([67b0185](https://github.com/sookeke/RfcBuddy/commit/67b0185f050ed8a65aeeb22699f71e4810ad0e6d))
+* added ci workflow ([2580ca7](https://github.com/sookeke/RfcBuddy/commit/2580ca7a54574300ddedf174a23e2e3d3359f079))
+* added ci workflow ([f973f43](https://github.com/sookeke/RfcBuddy/commit/f973f43350fdb68f4b553162cf7e05c21c4579e4))
+
 ## 1.0.0 (2025-08-16)
 
 
