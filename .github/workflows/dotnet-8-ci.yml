@@ -51,7 +51,7 @@ jobs:
           project-key: RfcBuddyTest
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           sonar-host-url: ${{ vars.SONAR_HOST_URL }}
-          coverage-report: TestResults/coverage/TestResults/coverage/coverage.cobertura.xml
+          coverage-report: TestResults/coverage/coverage.cobertura.xml
   
   package:
     name: Package
