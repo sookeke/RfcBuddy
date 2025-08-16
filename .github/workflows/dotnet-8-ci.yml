@@ -53,6 +53,7 @@ jobs:
           sonar-host-url: ${{ vars.SONAR_HOST_URL }}
           coverage-report: TestResults/coverage/coverage.cobertura.xml
           gitleaks_license: ${{ secrets.GITLEAKS_LICENSE }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
   package:
     name: Package
