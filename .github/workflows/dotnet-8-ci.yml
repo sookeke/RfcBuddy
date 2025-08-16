@@ -53,8 +53,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint, build, test, docker]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Semantic Release
-        uses: bcgov/ag-devops/ci/release/semantic-release@v1.0.0
+      - uses: googleapis/release-please-action@v4
+        with:
+          # this assumes that you have created a personal access token
+          # (PAT) and configured it as a GitHub action secret named
+          # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # this is a built-in strategy in release-please, see "Action Inputs"
+          # for more options
+          release-type: simple
