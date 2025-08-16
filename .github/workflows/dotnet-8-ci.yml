@@ -46,18 +46,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-    # Download the coverage artifact from the test job
-      - name: Download coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-          path: TestResults/coverage  # ensure the same path your Sonar composite expects
       - uses: bcgov/ag-devops/ci/security/sonarqube@v1.0.0
         with:
           project-key: RfcBuddyTest
           sonar-token: ${{ secrets.SONAR_TOKEN }}
           sonar-host-url: ${{ vars.SONAR_HOST_URL }}
-          coverage-report: TestResults/coverage/coverage.cobertura.xml
+          coverage-report: TestResults/coverage/TestResults/coverage/coverage.cobertura.xml
   
   package:
     name: Package
