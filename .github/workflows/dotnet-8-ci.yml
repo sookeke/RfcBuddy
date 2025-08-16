@@ -6,7 +6,7 @@ on:
 
 jobs:
   lint:
-    name: .NET 8 Lint
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -15,7 +15,7 @@ jobs:
       - uses: bcgov/ag-devops/ci/dotnetcore/composite/dotnet-8-lint@v1.0.0
 
   build:
-    name: .NET 8 Build
+    name: Build
     runs-on: ubuntu-latest
     needs: lint
     steps:
@@ -29,7 +29,7 @@ jobs:
           warn_as_error: "true"
 
   test:
-    name: .NET 8 Unit Tests
+    name: Tests
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -40,26 +40,28 @@ jobs:
           coverage_threshold: "25"
           coverage_threshold_type: "line,branch"
 
-  docker:
-    name: Docker DinD Environment
+  package:
+    name: Package
     runs-on: ubuntu-latest
     needs: test
     steps:
       - uses: actions/checkout@v4
       - uses: bcgov/ag-devops/ci/.shared/docker-dind@v1.0.0
   
+  sonarqube:
+    runs-on: ubuntu-latest
+    needs: [build, test, package]
+    steps:
+      - uses: bcgov/ag-devops/ci/security/sonarqube@v1.0.0
+        with:
+          project-key: my_project_key
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          sonar-host-url: ${{ vars.SONAR_HOST_URL }}
 
   semantic_release:
     runs-on: ubuntu-latest
-    needs: [lint, build, test, docker]
+    needs: [lint, build, test, package]
     steps:
-      - uses: googleapis/release-please-action@v4
-        with:
-          # this assumes that you have created a personal access token
-          # (PAT) and configured it as a GitHub action secret named
-          # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # this is a built-in strategy in release-please, see "Action Inputs"
-          # for more options
-          release-type: simple
-          target-branch: ${{ github.ref_name }}
+    - uses: bcgov/ag-devops/ci/release/semantic-release@v1.0.0
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
