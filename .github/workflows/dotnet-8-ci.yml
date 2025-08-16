@@ -46,12 +46,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-          path: TestResults/coverage # ensure the same path your Sonar composite expects
-
       - uses: bcgov/ag-devops/ci/security/sonarqube@v1.0.0
         with:
           project-key: RfcBuddyTest
